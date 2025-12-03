@@ -1,12 +1,13 @@
-import { NextFunction, Response } from 'express';
-import { AuthRequest } from './auth.middleware';
-import { AppError } from '../utils/appError';
+import { NextFunction, Request, Response } from "express";
+import { AppError } from "../utils/appError";
 
-export function roleMiddleware(requiredRole: string) {
-  return (req: AuthRequest, _res: Response, next: NextFunction) => {
-    const user = req.user;
-    if (!user) return next(new AppError('Unauthorized', 401));
-    if (user.role !== requiredRole) return next(new AppError('Forbidden', 403));
+export const requireRole = (role: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    // @ts-ignore
+    if (!req.user || req.user.user_type !== role) {
+      return next(new AppError("Forbidden – insufficient permissions", 403));
+    }
+
     next();
   };
-}
+};

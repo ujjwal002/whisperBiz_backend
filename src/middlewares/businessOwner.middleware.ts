@@ -1,19 +1,28 @@
-import { NextFunction, Response } from 'express';
-import { AuthRequest } from './auth.middleware';
-import { Business } from '../modules/businesses/business.model';
-import { AppError } from '../utils/appError';
+import { NextFunction, Request, Response } from "express";
+import { AppError } from "../utils/appError";
+import { UserBusiness } from "../modules/users/user.model";
 
-export async function businessOwnerMiddleware(req: AuthRequest, _res: Response, next: NextFunction) {
-  try {
-    const businessId = (req.params.businessId || req.body.businessId || req.query.businessId) as string;
-    if (!businessId) return next(new AppError('businessId required', 400));
-    const userId = req.user?.id;
-    if (!userId) return next(new AppError('Unauthorized', 401));
-    const biz = await Business.findById(businessId).lean();
-    if (!biz) return next(new AppError('Business not found', 404));
-    if (biz.owner_user_id !== userId) return next(new AppError('Forbidden - not business owner', 403));
-    next();
-  } catch (err) {
-    next(err);
-  }
-}
+export const requireBusinessOwner = () => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const businessId = req.params.businessId || req.body.businessId;
+
+      if (!businessId) {
+        return next(new AppError("Business ID required", 400));
+      }
+
+      // @ts-ignore
+      const userId = req.user.id;
+
+      const link = await UserBusiness.findOne({ user_id: userId, business_id: businessId });
+
+      if (!link) {
+        return next(new AppError("You are not the owner of this business", 403));
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};

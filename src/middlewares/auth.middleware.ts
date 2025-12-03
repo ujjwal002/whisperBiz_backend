@@ -1,21 +1,21 @@
-import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../libs/jwt';
-import { AppError } from '../utils/appError';
+import { NextFunction, Request, Response } from "express";
+import { verifyAccessToken } from "../libs/jwt";
+import { AppError } from "../utils/appError";
 
-export interface AuthRequest extends Request {
-  user?: { id: string; role?: string; email?: string };
-}
-
-export function authMiddleware(req: AuthRequest, _res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
-  if (!header) return next(new AppError('Authorization header missing', 401));
-  const [scheme, token] = header.split(' ');
-  if (scheme !== 'Bearer' || !token) return next(new AppError('Invalid authorization', 401));
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const payload = verifyAccessToken(token);
-    req.user = payload as any;
+    const authHeader = req.headers.authorization;
+    if (!authHeader) throw new AppError("Unauthorized", 401);
+
+    const token = authHeader.split(" ")[1];
+    if (!token) throw new AppError("Unauthorized", 401);
+
+    const decoded = verifyAccessToken(token);
+    // @ts-ignore
+    req.user = decoded;
+
     next();
-  } catch (err) {
-    next(new AppError('Invalid or expired token', 401));
+  } catch (error) {
+    next(new AppError("Invalid or expired token", 401));
   }
-}
+};

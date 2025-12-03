@@ -1,13 +1,18 @@
-import { Request, Response, NextFunction } from 'express';
-import { globalRateLimiter } from '../config/rateLimiter';
-import { AppError } from '../utils/appError';
+import { NextFunction, Request, Response } from "express";
+import { globalRateLimiter } from "../config/rateLimiter";
+import { AppError } from "../utils/appError";
 
-export async function rateLimiterMiddleware(req: Request, _res: Response, next: NextFunction) {
+export const rateLimit = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const ipHeader = req.headers['x-forwarded-for'];
+    const ip =
+      typeof ipHeader === 'string'
+        ? ipHeader.split(',')[0].trim()
+        : req.ip ?? req.socket?.remoteAddress ?? 'unknown';
+
     await globalRateLimiter.consume(ip);
     next();
-  } catch (err) {
-    next(new AppError('Too many requests', 429));
+  } catch {
+    next(new AppError("Too many requests", 429));
   }
-}
+};
