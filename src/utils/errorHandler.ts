@@ -1,10 +1,21 @@
-import { Request, Response, NextFunction } from 'express';
-import { AppError } from './appError';
+import { Request, Response, NextFunction } from "express";
+import { AppError } from "./appError";
+import { logger } from "../config/logger";
 
-export function errorHandler(err: any, _req: Request, res: Response, _next: NextFunction) {
-  if (err instanceof AppError) {
-    return res.status(err.status).json({ error: err.message });
-  }
-  console.error('Unhandled error', err);
-  return res.status(500).json({ error: 'Internal server error' });
-}
+export const errorHandler = (
+  err: AppError | Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const statusCode = err instanceof AppError ? ((err as any).statusCode ?? 500) : 500;
+  const message =
+    err instanceof AppError ? (err as any).message : "Internal Server Error";
+
+  logger.error("API Error:", message);
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+  });
+};
