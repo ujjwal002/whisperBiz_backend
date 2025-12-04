@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/appError";
-import { UserBusiness } from "../modules/users/user.model";
+import { UserBusiness } from "..//modules/user-businesses/userBusiness.model";
 
 export const requireBusinessOwner = () => {
   return async (req: Request, res: Response, next: NextFunction) => {
