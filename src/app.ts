@@ -1,30 +1,60 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import routes from './routes';
-import { errorHandler } from './utils/errorHandler';
-import { rateLimiterMiddleware } from './middlewares/rateLimit.middleware';
-import dotenv from 'dotenv';
-dotenv.config();
+// src/app.ts
+import express, { Request, Response, NextFunction } from "express";
+import helmet from "helmet";
+import cors from "cors";
+import compression from "compression";
+import morgan from "morgan";
+import bodyParser from "body-parser";
 
-const app = express();
+import router from "../src/routes"; // <-- your final routes/index.ts
+import { errorHandler } from "./utils/errorHandler";
+import { logger } from "./config/logger";
+import { rateLimit } from "./middlewares/rateLimit.middleware";
 
-app.use(helmet());
-app.use(cors());
-app.use(express.json({ limit: '1mb' }));
-app.use(morgan('combined'));
+export const createApp = () => {
+  const app = express();
 
-// global rate limiter
-app.use(rateLimiterMiddleware);
+  /* ------------------ Global Middlewares ------------------ */
+  app.use(helmet());
+  app.use(cors());
+  app.use(compression());
 
-// register routes
-app.use('/api', routes);
+  app.use(bodyParser.json({ limit: "1mb" }));
+  app.use(bodyParser.urlencoded({ extended: true }));
 
-// health
-app.get('/health', (_req, res) => res.json({ ok: true }));
+  // Morgan logs -> Pino logger
+  app.use(
+    morgan("combined", {
+      stream: {
+        write: (msg) => logger.info(msg.trim()),
+      },
+    })
+  );
 
-// error handler
-app.use(errorHandler);
+  // Global rate limiter
+  app.use(rateLimit);
 
-export default app;
+  /* ------------------ Health Check ------------------ */
+  app.get("/health", (req: Request, res: Response) => {
+    res.status(200).json({
+      ok: true,
+      uptime: process.uptime(),
+      timestamp: Date.now(),
+    });
+  });
+
+  /* ------------------ Application Routes ------------------ */
+  app.use("/", router);
+
+  /* ------------------ 404 Handler ------------------ */
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    const err: any = new Error(`Not Found: ${req.originalUrl}`);
+    err.statusCode = 404;
+    next(err);
+  });
+
+  /* ------------------ Global Error Handler ------------------ */
+  app.use(errorHandler);
+
+  return app;
+};
