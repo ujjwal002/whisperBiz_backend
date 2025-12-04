@@ -1,4 +1,3 @@
-// src/modules/users/user.model.ts
 import { Schema, model, Document } from "mongoose";
 import { UserType } from "../../types";
 
@@ -13,13 +12,13 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
-    email: { type: String, required: true, unique: true, index: true },
+    email: { type: String, required: true, unique: true },  // removed index
     full_name: { type: String, default: null },
     user_type: {
       type: String,
       enum: Object.values(UserType),
-      required: true,
-      index: true,
+      required: true
+      // removed index
     },
     platform: {
       type: String,
@@ -30,7 +29,8 @@ const UserSchema = new Schema<IUser>(
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
 
-UserSchema.index({ email: 1 });
-UserSchema.index({ user_type: 1 });
+// ❌ Remove these duplicate indices
+// UserSchema.index({ email: 1 });
+// UserSchema.index({ user_type: 1 });
 
 export const User = model<IUser>("User", UserSchema);

@@ -1,10 +1,10 @@
 {
   "name": "whisperbiz_backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"nodemon server.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "mongoose": "^8.20.1",
     "morgan": "^1.10.1",
     "node-fetch": "^3.3.2",
+    "nodemon": "^3.1.11",
     "rate-limiter-flexible": "^9.0.0",
     "uuid": "^13.0.0",
     "zod": "^4.1.13"
