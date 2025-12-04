@@ -4,7 +4,7 @@ export const connectPlatformSchema = z.object({
   body: z.object({
     businessId: z.string().min(1),
     platform: z.enum(["whatsapp", "telegram", "messenger"]),
-    credentials: z.record(z.any()).optional(),
+    credentials: z.record(z.string(), z.any()).optional(),
     webhook_url: z.string().url().optional(),
   }),
 });
