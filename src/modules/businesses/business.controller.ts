@@ -5,6 +5,7 @@ export const BusinessController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
+      console.log("Req user:", req.user);
       const ownerUserId = req.user.id;
       const { business_name, email } = req.body;
 

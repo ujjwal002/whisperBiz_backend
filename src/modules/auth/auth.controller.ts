@@ -16,6 +16,7 @@ export const AuthController = {
   login: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
+      console.log("Login attempt for email:", email);
       const result = await AuthService.login(email, password);
       res.status(200).json(result);
     } catch (err) {

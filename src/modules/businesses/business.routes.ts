@@ -11,7 +11,7 @@ import {
 const router = Router();
 
 // Create business (owner)
-router.post("/", authMiddleware, validate(createBusinessSchema), BusinessController.create);
+router.post("/",authMiddleware, validate(createBusinessSchema), BusinessController.create);
 
 // Update business
 router.put("/:businessId", authMiddleware, validate(updateBusinessSchema), BusinessController.update);
