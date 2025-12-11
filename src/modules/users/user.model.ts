@@ -34,3 +34,5 @@ const UserSchema = new Schema<IUser>(
 // UserSchema.index({ user_type: 1 });
 
 export const User = model<IUser>("User", UserSchema);
+
+
