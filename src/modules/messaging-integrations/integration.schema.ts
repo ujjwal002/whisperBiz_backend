@@ -7,6 +7,6 @@ export const connectIntegrationSchema = z.object({
 });
 
 export const disconnectIntegrationSchema = z.object({
-  business_id: z.string(),
+  businessId: z.string(),
   platform: z.enum(["whatsapp", "telegram", "messenger"])
 });

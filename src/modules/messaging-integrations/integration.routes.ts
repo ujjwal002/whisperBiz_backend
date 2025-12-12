@@ -3,6 +3,8 @@ import { MessagingIntegrationController } from "./integration.controller";
 import { validate } from "../../middlewares/validate.middleware";
 import { connectIntegrationSchema, disconnectIntegrationSchema } from "./integration.schema";
 import { authMiddleware } from "../../middlewares/auth.middleware";
+import { fetchHistory } from "./history";
+
 
 const router = Router();
 
@@ -28,5 +30,19 @@ router.get(
   authMiddleware,
   MessagingIntegrationController.list
 );
+
+router.post('/fetch-history', authMiddleware, async (req, res) => {
+  try {
+    const { businessId, platform } = req.body;
+    if (!businessId || !platform) return res.status(400).json({ error: 'businessId and platform required' });
+
+    const result = await fetchHistory(platform, businessId);
+    return res.json(result);
+  } catch (err: any) {
+    console.error('fetch-history error', err);
+    return res.status(500).json({ error: err.message || 'unknown' });
+  }
+});
+
 
 export default router;

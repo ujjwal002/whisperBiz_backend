@@ -25,3 +25,5 @@ export const MessagingIntegrationRepository = {
     return MessagingIntegrationModel.findOne({ business_id, platform });
   }
 };
+
+
