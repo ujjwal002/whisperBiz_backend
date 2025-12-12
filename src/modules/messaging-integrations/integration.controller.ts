@@ -5,6 +5,7 @@ export const MessagingIntegrationController = {
   connect: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { business_id, platform, credentials } = req.body;
+      console.log("Connecting integration for business:", business_id, "platform:", platform);
 
       const integration = await MessagingIntegrationService.connectIntegration(
         business_id,

@@ -5,6 +5,7 @@ export const UserController = {
   me: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
+      console.log("UserController.me - User ID:", req.user.id);
       const userId = req.user.id;
       const user = await UserService.getMe(userId);
       res.json({ user });

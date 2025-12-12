@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const connectIntegrationSchema = z.object({
-  business_id: z.string(),
+  businessId: z.string(),
   platform: z.enum(["whatsapp", "telegram", "messenger"]),
   credentials: z.record(z.string(), z.any()).optional()
 });

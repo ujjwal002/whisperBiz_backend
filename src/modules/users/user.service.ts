@@ -2,7 +2,9 @@ import { UserRepository } from "./user.repository";
 
 export const UserService = {
   async getMe(userId: string) {
+    console.log("UserService.getMe - Fetching user with ID:", userId);
     const user = await UserRepository.findById(userId);
+    console.log("UserService.getMe - Retrieved User:", user);
     if (!user) throw new Error("User not found");
     return user;
   },
