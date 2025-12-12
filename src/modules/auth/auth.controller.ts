@@ -1,49 +1,47 @@
 // src/modules/auth/auth.controller.ts
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 
 export const AuthController = {
-  signup: async (req: Request, res: Response, next: NextFunction) => {
+  registerBusiness: async (req: Request, res: Response) => {
     try {
-      const { email, password, full_name } = req.body;
-      const result = await AuthService.signup(email, password, full_name);
+      const { businessName, email, password } = req.body;
+      console.log("Registering business with:", { businessName, email,password });
+      const result = await AuthService.registerBusiness(businessName, email, password);
       res.status(201).json(result);
-    } catch (err) {
-      next(err);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
   },
 
-  login: async (req: Request, res: Response, next: NextFunction) => {
+  loginBusiness: async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
-      console.log("Login attempt for email:", email);
-      const result = await AuthService.login(email, password);
-      res.status(200).json(result);
-    } catch (err) {
-      next(err);
+      console.log("Logging in business with:", { email, password });
+      const result = await AuthService.loginBusiness(email, password);
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
   },
 
-  refreshToken: async (req: Request, res: Response, next: NextFunction) => {
+  registerUser: async (req: Request, res: Response) => {
     try {
-      const { refresh_token } = req.body;
-      const result = await AuthService.refresh(refresh_token);
-      res.status(200).json(result);
-    } catch (err) {
-      next(err);
+      const { fullName, email, password, businessCode } = req.body;
+      const result = await AuthService.registerUser(fullName, email, password, businessCode);
+      res.status(201).json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
   },
 
-  changePassword: async (req: Request, res: Response, next: NextFunction) => {
+  loginUser: async (req: Request, res: Response) => {
     try {
-      // @ts-ignore
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "Unauthorized" });
-      const { newPassword } = req.body;
-      await AuthService.changePassword(userId, newPassword);
-      res.json({ success: true });
-    } catch (err) {
-      next(err);
+      const { email, password } = req.body;
+      const result = await AuthService.loginUser(email, password);
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
   },
 };

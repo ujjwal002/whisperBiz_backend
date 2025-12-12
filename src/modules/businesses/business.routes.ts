@@ -1,25 +1,19 @@
+// src/modules/businesses/business.routes.ts
 import { Router } from "express";
 import { BusinessController } from "./business.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { validate } from "../../middlewares/validate.middleware";
-import {
-  createBusinessSchema,
-  updateBusinessSchema,
-  getBusinessSchema,
-} from "./business.schema";
+import { getBusinessParamsSchema, updateBusinessSchema } from "./business.schema";
 
 const router = Router();
 
-// Create business (owner)
-router.post("/",authMiddleware, validate(createBusinessSchema), BusinessController.create);
+// Get the business owned by the authenticated user
+router.get("/my", authMiddleware, BusinessController.getMyBusiness);
 
-// Update business
-router.put("/:businessId", authMiddleware, validate(updateBusinessSchema), BusinessController.update);
+// Get business by id (owner-only or public read depending on your policy)
+router.get("/:id", validate(getBusinessParamsSchema), authMiddleware, BusinessController.getById);
 
-// Get business details
-router.get("/:businessId", authMiddleware, validate(getBusinessSchema), BusinessController.get);
-
-// List all businesses owned by user
-router.get("/", authMiddleware, BusinessController.listOwned);
+// Update business (owner only)
+router.put("/:id", validate(updateBusinessSchema), authMiddleware, BusinessController.update);
 
 export default router;

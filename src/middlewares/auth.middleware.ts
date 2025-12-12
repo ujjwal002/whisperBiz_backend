@@ -1,21 +1,22 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../libs/jwt";
-import { AppError } from "../utils/appError";
+import { AuthPayload } from "../types";
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) throw new AppError("Unauthorized", 401);
+    const auth = req.headers.authorization;
 
-    const token = authHeader.split(" ")[1];
-    if (!token) throw new AppError("Unauthorized", 401);
+    if (!auth || !auth.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized: Missing token" });
+    }
 
-    const decoded = verifyAccessToken(token);
-    // @ts-ignore
-    req.user = decoded;
+    const token = auth.split(" ")[1];
+    const decoded = verifyAccessToken(token) as AuthPayload;
+
+    req.user = decoded; // <-- NOW MATCHES GLOBAL TYPE
 
     next();
-  } catch (error) {
-    next(new AppError("Invalid or expired token", 401));
+  } catch (err) {
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
 };

@@ -1,26 +1,21 @@
-import { UserBusiness } from "./userBusiness.model";
+import UserBusinessModel from "./userBusiness.model";
 
 export const UserBusinessRepository = {
-  findByUserAndBusiness: (userId: string, businessId: string) =>
-    UserBusiness.findOne({ user_id: userId, business_id: businessId }).lean(),
+  add(user_id: string, business_id: string) {
+    return UserBusinessModel.create({ user_id, business_id });
+  },
 
-  findByBusiness: (businessId: string, page = 1, limit = 50) =>
-    UserBusiness.find({ business_id: businessId })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean(),
+  remove(user_id: string, business_id: string) {
+    return UserBusinessModel.findOneAndDelete({ user_id, business_id });
+  },
 
-  findByUser: (userId: string) => UserBusiness.find({ user_id: userId }).lean(),
+  list(business_id: string) {
+    return UserBusinessModel
+      .find({ business_id })
+      .populate("user_id", "full_name email user_type");
+  },
 
-  create: (data: Partial<any>) => UserBusiness.create(data),
-
-  delete: (userId: string, businessId: string) =>
-    UserBusiness.findOneAndDelete({ user_id: userId, business_id: businessId }),
-
-  upsert: (userId: string, businessId: string, role?: string) =>
-    UserBusiness.findOneAndUpdate(
-      { user_id: userId, business_id: businessId },
-      { $set: { role } },
-      { upsert: true, new: true }
-    ).lean(),
+  findMembership(user_id: string, business_id: string) {
+    return UserBusinessModel.findOne({ user_id, business_id });
+  }
 };

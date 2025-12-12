@@ -1,25 +1,25 @@
 import { Router } from "express";
 import { ChatPreferenceController } from "./chatPreference.controller";
-import { authMiddleware } from "../../middlewares/auth.middleware";
 import { validate } from "../../middlewares/validate.middleware";
-import { updateChatPreferenceSchema, getChatPreferenceSchema } from "./chatPreference.schema";
+import { updatePreferenceSchema, getPreferenceSchema } from "./chatPreference.schema";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 
 const router = Router();
 
-// GET preference for business
-router.get(
-  "/:businessId",
+// Update preference
+router.post(
+  "/",
   authMiddleware,
-  validate(getChatPreferenceSchema),
-  ChatPreferenceController.get
+  validate(updatePreferenceSchema),
+  ChatPreferenceController.update
 );
 
-// UPDATE AI reply ON/OFF
-router.post(
-  "/update",
+// Get preference
+router.get(
+  "/:userId/:businessId",
   authMiddleware,
-  validate(updateChatPreferenceSchema),
-  ChatPreferenceController.update
+  validate(getPreferenceSchema),
+  ChatPreferenceController.get
 );
 
 export default router;

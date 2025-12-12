@@ -18,6 +18,7 @@ export const createApp = () => {
   app.use(helmet());
   app.use(cors());
   app.use(compression());
+  app.use(express.json());
 
   app.use(bodyParser.json({ limit: "1mb" }));
   app.use(bodyParser.urlencoded({ extended: true }));

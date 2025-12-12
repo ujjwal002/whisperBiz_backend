@@ -1,24 +1,27 @@
-import { Integration } from "./integration.model";
+import { MessagingIntegrationModel } from "./integration.model";
 
-export const IntegrationRepository = {
-  findByBusinessAndPlatform: (businessId: string, platform: string) =>
-    Integration.findOne({ business_id: businessId, platform }).lean(),
+export const MessagingIntegrationRepository = {
+  upsertIntegration(business_id: string, platform: string, credentials: any) {
+    return MessagingIntegrationModel.findOneAndUpdate(
+      { business_id, platform },
+      { is_connected: true, credentials },
+      { upsert: true, new: true }
+    );
+  },
 
-  findByBusiness: (businessId: string) =>
-    Integration.find({ business_id: businessId }).lean(),
+  disconnect(business_id: string, platform: string) {
+    return MessagingIntegrationModel.findOneAndUpdate(
+      { business_id, platform },
+      { is_connected: false },
+      { new: true }
+    );
+  },
 
-  findOneByPlatform: (platform: string) =>
-    Integration.findOne({ platform, is_connected: true }).lean(),
+  getAll(business_id: string) {
+    return MessagingIntegrationModel.find({ business_id });
+  },
 
-  create: (data: Partial<any>) => Integration.create(data),
-
-  update: (businessId: string, platform: string, update: any) =>
-    Integration.findOneAndUpdate(
-      { business_id: businessId, platform },
-      update,
-      { new: true, upsert: true }
-    ).lean(),
-
-  delete: (businessId: string, platform: string) =>
-    Integration.findOneAndDelete({ business_id: businessId, platform }),
+  getOne(business_id: string, platform: string) {
+    return MessagingIntegrationModel.findOne({ business_id, platform });
+  }
 };

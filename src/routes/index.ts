@@ -9,11 +9,9 @@ import userBusinessRoutes from "../modules/user-businesses/userBusiness.routes";
 import integrationRoutes from "../modules/messaging-integrations/integration.routes";
 import chatMessageRoutes from "../modules/chat-messages/chatMessage.routes";
 import chatPreferenceRoutes from "../modules/chat-preferences/chatPreference.routes";
+import webhookRoutes from "../modules/webhooks/webhook.routes";
 
-// WEBHOOK ROUTES
-import telegramWebhookRoutes from "../modules/webhooks/telegram/telegramWebhook.routes";
-import whatsappWebhookRoutes from "../modules/webhooks/whatsapp/whatsappWebhook.routes";
-import messengerWebhookRoutes from "../modules/webhooks/messenger/messengerWebhook.routes";
+
 
 const router = Router();
 
@@ -32,8 +30,6 @@ router.use("/api/chat-preferences", chatPreferenceRoutes);
  * because platforms like WhatsApp, Telegram, Messenger
  * must call exact webhook URLs without auth middlewares.
  */
-router.use("/webhooks/telegram", telegramWebhookRoutes);
-router.use("/webhooks/whatsapp", whatsappWebhookRoutes);
-router.use("/webhooks/messenger", messengerWebhookRoutes);
+router.use("/webhooks", webhookRoutes);
 
 export default router;

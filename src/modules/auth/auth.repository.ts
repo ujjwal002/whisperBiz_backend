@@ -5,7 +5,7 @@ export const AuthRepository = {
 
   createUser: (data: {
     email: string;
-    password_hash: string;
+    password: string;
     full_name?: string;
     user_type: string;
   }) => AuthUser.create(data),

@@ -1,93 +1,132 @@
 // src/modules/auth/auth.service.ts
-import { UserRepository } from "../users/user.repository";
-import { PasswordRepository } from "./password.repository";
-import { hashPassword, comparePassword } from "../../libs/crypto";
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../../libs/jwt";
-import { AppError } from "../../utils/appError";
-import { UserType } from "../../types";
-
-/**
- * Signup:
- *  - create User (user_type = business_owner by default for signups)
- *  - create PasswordCredential for that user
- *  - return tokens
- *
- * Login:
- *  - find user by email
- *  - find password credential
- *  - compare password
- *  - issue tokens
- *
- * Refresh:
- *  - verify refresh token
- *  - return new access token
- */
+import bcrypt from "bcryptjs";
+import { AuthUser } from "./auth.model";
+import { Business } from "../businesses/business.model";
+import UserBusiness from "../user-businesses/userBusiness.model";
+import { ChatPreferenceModel } from "../chat-preferences/chatPreference.model";
+import { generateBusinessCode } from "../../utils/generateBusinessCode";
+import { signAccessToken } from "../../libs/jwt";
+import { AuthRepository } from "./auth.repository";
+import { UserBusinessRepository } from "../user-businesses/userBusiness.repository";
 
 export const AuthService = {
-  async signup(email: string, password: string, full_name?: string) {
-    // Check if user exists
-    const existing = await UserRepository.findByEmail(email);
-    if (existing) throw new AppError("Email already registered", 400);
 
-    // Create user
-    const user = await UserRepository.create({
+  // BUSINESS SIGNUP
+  registerBusiness: async (businessName, email, password) => {
+    const exists = await AuthRepository.findByEmail(email);
+    if (exists) throw new Error("Email already exists");
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const owner = await AuthRepository.createUser({
       email,
-      full_name: full_name ?? null,
-      user_type: UserType.BUSINESS_OWNER,
-      platform: "web",
-    } as any);
+      password: hashed,
+      full_name: businessName,
+      user_type: "business_owner",
+    });
 
-    // Create password credential
-    const password_hash = await hashPassword(password);
-    await PasswordRepository.create({ user_id: String((user as any)._id), password_hash });
+    const businessCode = await generateBusinessCode();
+    console.log("Generated business code:", businessCode);
 
-    // Issue tokens
-    const payload = { id: String((user as any)._id), email: user.email, user_type: user.user_type };
-    const access_token = signAccessToken(payload);
-    const refresh_token = signRefreshToken(payload);
+    const business = await Business.create({
+      business_name: businessName,
+      email,
+      business_code: businessCode,
+      owner_user_id: owner._id,
+    });
 
-    return { access_token, refresh_token, user };
+    console.log("Created business:", business);
+
+    await UserBusinessRepository.add(owner._id.toString(), business._id.toString());
+
+    console.log("Linked owner to business");
+
+    // ✅ FIXED JWT PAYLOAD
+    const token = signAccessToken({
+      id: owner._id,
+      email: owner.email,
+      user_type: owner.user_type,
+    });
+
+    console.log("Generated token for owner");
+
+    return { owner, business, token };
   },
 
-  async login(email: string, password: string) {
-    const user = await UserRepository.findByEmail(email);
-    if (!user) throw new AppError("Invalid credentials", 400);
+  // BUSINESS LOGIN
+  loginBusiness: async (email, password) => {
+    const user = await AuthUser.findOne({ email });
+    if (!user) throw new Error("Invalid credentials");
+    if (user.user_type !== "business_owner")
+      throw new Error("Not a business owner account");
 
-    const pw = await PasswordRepository.findByUserId(String((user as any)._id));
-    if (!pw) throw new AppError("Invalid credentials", 400); // no password set for this user
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) throw new Error("Invalid credentials");
 
-    const ok = await comparePassword(password, pw.password_hash);
-    if (!ok) throw new AppError("Invalid credentials", 400);
+    // ✅ FIXED JWT PAYLOAD
+    const token = signAccessToken({
+      id: user._id,
+      email: user.email,
+      user_type: user.user_type,
+    });
 
-    const payload = { id: String((user as any)._id), email: user.email, user_type: user.user_type };
-    const access_token = signAccessToken(payload);
-    const refresh_token = signRefreshToken(payload);
-
-    return { access_token, refresh_token, user };
+    return { user, token };
   },
 
-  async refresh(refreshToken: string) {
-    try {
-      const decoded: any = verifyRefreshToken(refreshToken);
-      const userId = decoded.id;
-      const user = await UserRepository.findById(userId);
-      if (!user) throw new AppError("Invalid refresh token", 401);
-      const payload = { id: String((user as any)._id), email: user.email, user_type: user.user_type };
-      return { access_token: signAccessToken(payload) };
-    } catch (err) {
-      throw new AppError("Invalid refresh token", 401);
-    }
+  // USER SIGNUP
+  registerUser: async (fullName, email, password, businessCode) => {
+    const exists = await AuthUser.findOne({ email });
+    if (exists) throw new Error("Email already exists");
+
+    const business = await Business.findOne({ business_code: businessCode });
+    if (!business) throw new Error("Invalid business code");
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const user = await AuthUser.create({
+      email,
+      password: hashed,
+      full_name: fullName,
+      user_type: "user",
+    });
+
+    await UserBusiness.create({
+      user_id: user._id,
+      business_id: business._id,
+    });
+
+    await ChatPreferenceModel.create({
+      user_id: user._id,
+      business_id: business._id,
+      use_ai_reply: true,
+    });
+
+    // ✅ FIXED JWT PAYLOAD
+    const token = signAccessToken({
+      id: user._id,
+      email: user.email,
+      user_type: user.user_type,
+    });
+
+    return { user, business, token };
   },
 
-  // Optional: change password
-  async changePassword(userId: string, newPassword: string) {
-    const hash = await hashPassword(newPassword);
-    const existing = await PasswordRepository.findByUserId(userId);
-    if (existing) {
-      await PasswordRepository.updateByUserId(userId, hash);
-    } else {
-      await PasswordRepository.create({ user_id: userId, password_hash: hash });
-    }
-    return true;
+  // USER LOGIN
+  loginUser: async (email, password) => {
+    const user = await AuthUser.findOne({ email });
+    if (!user) throw new Error("Invalid credentials");
+    if (user.user_type !== "user") throw new Error("Not a user account");
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) throw new Error("Invalid credentials");
+
+    // ✅ FIXED JWT PAYLOAD
+    const token = signAccessToken({
+      id: user._id,
+      email: user.email,
+      user_type: user.user_type,
+    });
+
+    return { user, token };
   },
 };

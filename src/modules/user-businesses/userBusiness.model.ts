@@ -1,22 +1,19 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUserBusiness extends Document {
-  user_id: string;     // User._id
-  business_id: string; // Business._id
-  role?: string;       // e.g., "owner", "admin", "member"
-  created_at: Date;
+  user_id: mongoose.Types.ObjectId;
+  business_id: mongoose.Types.ObjectId;
 }
 
 const UserBusinessSchema = new Schema<IUserBusiness>(
   {
-    user_id: { type: String, required: true, index: true },
-    business_id: { type: String, required: true, index: true },
-    role: { type: String, default: "member" },
+    user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    business_id: { type: Schema.Types.ObjectId, ref: "Business", required: true },
   },
-  { timestamps: { createdAt: "created_at", updatedAt: false } }
+  { timestamps: true }
 );
 
-// Unique constraint: a user can join a business only once
+// prevent duplicate membership
 UserBusinessSchema.index({ user_id: 1, business_id: 1 }, { unique: true });
 
-export const UserBusiness = model<IUserBusiness>("UserBusiness", UserBusinessSchema);
+export default mongoose.model<IUserBusiness>("UserBusiness", UserBusinessSchema);

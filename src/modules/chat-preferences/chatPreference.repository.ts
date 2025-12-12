@@ -1,15 +1,15 @@
-import { ChatPreference } from "./chatPreference.model";
+import { ChatPreferenceModel } from "./chatPreference.model";
 
 export const ChatPreferenceRepository = {
-  findByBusinessId: (businessId: string) =>
-    ChatPreference.findOne({ business_id: businessId }).lean(),
+  createOrUpdate(user_id: string, business_id: string, use_ai_reply: boolean) {
+    return ChatPreferenceModel.findOneAndUpdate(
+      { user_id, business_id },
+      { use_ai_reply },
+      { upsert: true, new: true }
+    );
+  },
 
-  create: (data: Partial<any>) => ChatPreference.create(data),
-
-  update: (businessId: string, update: Partial<any>) =>
-    ChatPreference.findOneAndUpdate(
-      { business_id: businessId },
-      update,
-      { new: true, upsert: true }
-    ).lean(),
+  get(user_id: string, business_id: string) {
+    return ChatPreferenceModel.findOne({ user_id, business_id });
+  }
 };

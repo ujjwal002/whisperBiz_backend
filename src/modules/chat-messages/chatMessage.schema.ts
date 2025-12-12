@@ -1,30 +1,13 @@
 import { z } from "zod";
 
 export const sendMessageSchema = z.object({
-  body: z.object({
-    businessId: z.string().min(1),
-    userId: z.string().min(1),
-    message: z.string().min(1),
-  }),
+  user_id: z.string(),
+  business_id: z.string(),
+  message: z.string().min(1),
+  sender_type: z.enum(["user", "admin", "ai"])
 });
 
-export const getUserMessagesSchema = z.object({
-  params: z.object({
-    userId: z.string().min(1),
-    businessId: z.string().min(1),
-  }),
-  query: z.object({
-    page: z.coerce.number().optional(),
-    limit: z.coerce.number().optional(),
-  }),
-});
-
-export const getBusinessMessagesSchema = z.object({
-  params: z.object({
-    businessId: z.string().min(1),
-  }),
-  query: z.object({
-    page: z.coerce.number().optional(),
-    limit: z.coerce.number().optional(),
-  }),
+export const getMessagesSchema = z.object({
+  userId: z.string(),
+  businessId: z.string()
 });

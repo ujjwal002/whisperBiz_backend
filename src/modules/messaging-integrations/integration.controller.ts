@@ -1,22 +1,18 @@
 import { Request, Response, NextFunction } from "express";
-import { IntegrationService } from "./integration.service";
+import { MessagingIntegrationService } from "./integration.service";
 
-export const IntegrationController = {
+export const MessagingIntegrationController = {
   connect: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      const requestingUserId = req.user.id;
-      const { businessId, platform, credentials, webhook_url } = req.body;
+      const { business_id, platform, credentials } = req.body;
 
-      const result = await IntegrationService.connectIntegration(
-        requestingUserId,
-        businessId,
+      const integration = await MessagingIntegrationService.connectIntegration(
+        business_id,
         platform,
-        credentials,
-        webhook_url
+        credentials
       );
 
-      res.status(200).json({ success: true, integration: result });
+      res.json({ integration });
     } catch (err) {
       next(err);
     }
@@ -24,29 +20,27 @@ export const IntegrationController = {
 
   disconnect: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      const requestingUserId = req.user.id;
-      const { businessId, platform } = req.body;
+      const { business_id, platform } = req.body;
 
-      const result = await IntegrationService.disconnectIntegration(
-        requestingUserId,
-        businessId,
+      const integration = await MessagingIntegrationService.disconnectIntegration(
+        business_id,
         platform
       );
 
-      res.status(200).json({ success: true, integration: result });
+      res.json({ success: true, integration });
     } catch (err) {
       next(err);
     }
   },
 
-  getByBusiness: async (req: Request, res: Response, next: NextFunction) => {
+  list: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const businessId = req.params.businessId;
-      const integrations = await IntegrationService.getIntegrations(businessId);
+      const integrations = await MessagingIntegrationService.listIntegrations(businessId);
+
       res.json({ integrations });
     } catch (err) {
       next(err);
     }
-  },
+  }
 };

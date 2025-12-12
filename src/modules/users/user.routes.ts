@@ -1,26 +1,17 @@
 import { Router } from "express";
-import {
-  meHandler,
-  createUserHandler,
-  listUsersHandler,
-  getUserHandler,
-  updateUserHandler,
-  linkProfileHandler,
-} from "./user.controller";
+import { UserController } from "./user.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { validate } from "../../middlewares/validate.middleware";
-import { createUserSchema, updateUserSchema, queryUsersSchema } from "./user.schema";
+import { updateUserSchema } from "./user.schema";
 
 const router = Router();
 
-// protected profile endpoints
-router.get("/me", authMiddleware, meHandler);
+router.get("/me", authMiddleware, UserController.me);
 
-// admin-like endpoints (keep protected)
-router.post("/", authMiddleware, validate(createUserSchema), createUserHandler);
-router.get("/", authMiddleware, validate(queryUsersSchema), listUsersHandler);
-router.get("/:id", authMiddleware, getUserHandler);
-router.put("/:id", authMiddleware, validate(updateUserSchema), updateUserHandler);
-router.post("/:id/link-profile", authMiddleware, linkProfileHandler);
+router.get("/", authMiddleware, UserController.listUsers);
+
+router.get("/:id", authMiddleware, UserController.getUser);
+
+router.put("/:id", authMiddleware, validate(updateUserSchema), UserController.updateUser);
 
 export default router;

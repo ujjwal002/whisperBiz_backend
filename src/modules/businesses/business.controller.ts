@@ -1,54 +1,62 @@
+// src/modules/businesses/business.controller.ts
 import { Request, Response, NextFunction } from "express";
 import { BusinessService } from "./business.service";
 
 export const BusinessController = {
-  create: async (req: Request, res: Response, next: NextFunction) => {
+  /**
+   * GET /api/businesses/my
+   * Returns the business owned by the authenticated user
+   */
+  getMyBusiness: async (req: any, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      console.log("Req user:", req.user);
-      const ownerUserId = req.user.id;
-      const { business_name, email } = req.body;
+      const ownerId = req.user?.id;
+      if (!ownerId) return res.status(401).json({ error: "Unauthorized" });
 
-      const business = await BusinessService.createBusiness(ownerUserId, business_name, email);
-      res.status(201).json({ business });
-    } catch (err) {
-      next(err);
-    }
-  },
+      const business = await BusinessService.getByOwner(ownerId);
+      if (!business) return res.status(404).json({ error: "Business not found" });
 
-  update: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // @ts-ignore
-      const ownerUserId = req.user.id;
-      const { businessId } = req.params;
-
-      const updated = await BusinessService.updateBusiness(ownerUserId, businessId, req.body);
-      res.json({ business: updated });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  get: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // @ts-ignore
-      const userId = req.user.id;
-      const { businessId } = req.params;
-
-      const business = await BusinessService.getBusiness(userId, businessId);
       res.json({ business });
     } catch (err) {
       next(err);
     }
   },
 
-  listOwned: async (req: Request, res: Response, next: NextFunction) => {
+  /**
+   * GET /api/businesses/:id
+   * Returns business by id. Owner or member check can be added if needed.
+   */
+  getById: async (req: any, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      const userId = req.user.id;
+      const businessId = req.params.id;
+      const business = await BusinessService.getById(businessId);
+      if (!business) return res.status(404).json({ error: "Business not found" });
+      res.json({ business });
+    } catch (err) {
+      next(err);
+    }
+  },
 
-      const businesses = await BusinessService.getBusinessesForUser(userId);
-      res.json({ businesses });
+  /**
+   * PUT /api/businesses/:id
+   * Update business fields (owner only)
+   */
+  update: async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const ownerId = req.user?.id;
+      if (!ownerId) return res.status(401).json({ error: "Unauthorized" });
+
+      const businessId = req.params.id;
+      const updatePayload = req.body;
+
+      // Disallow critical field changes
+      delete updatePayload.owner_user_id;
+      delete updatePayload.business_code;
+      delete updatePayload._id;
+
+      const updated = await BusinessService.updateByOwner(ownerId, businessId, updatePayload);
+      if (!updated) return res.status(404).json({ error: "Business not found or unauthorized" });
+
+      res.json({ business: updated });
     } catch (err) {
       next(err);
     }

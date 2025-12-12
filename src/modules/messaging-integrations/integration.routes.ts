@@ -1,18 +1,32 @@
 import { Router } from "express";
-import { IntegrationController } from "./integration.controller";
-import { authMiddleware } from "../../middlewares/auth.middleware";
+import { MessagingIntegrationController } from "./integration.controller";
 import { validate } from "../../middlewares/validate.middleware";
-import { connectPlatformSchema, disconnectPlatformSchema } from "./integration.schema";
+import { connectIntegrationSchema, disconnectIntegrationSchema } from "./integration.schema";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 
 const router = Router();
 
-// Connect a platform (owner only)
-router.post("/connect", authMiddleware, validate(connectPlatformSchema), IntegrationController.connect);
+// Connect platform
+router.post(
+  "/connect",
+  authMiddleware,
+  validate(connectIntegrationSchema),
+  MessagingIntegrationController.connect
+);
 
-// Disconnect
-router.post("/disconnect", authMiddleware, validate(disconnectPlatformSchema), IntegrationController.disconnect);
+// Disconnect platform
+router.post(
+  "/disconnect",
+  authMiddleware,
+  validate(disconnectIntegrationSchema),
+  MessagingIntegrationController.disconnect
+);
 
-// List integrations for business
-router.get("/:businessId", authMiddleware, IntegrationController.getByBusiness);
+// List integrations for a business
+router.get(
+  "/:businessId",
+  authMiddleware,
+  MessagingIntegrationController.list
+);
 
 export default router;

@@ -1,8 +1,8 @@
 import { Schema, model, Document } from "mongoose";
 
 export interface IChatPreference extends Document {
+  user_id: string;
   business_id: string;
-  user_id: string; // business owner
   use_ai_reply: boolean;
   created_at: Date;
   updated_at: Date;
@@ -10,14 +10,17 @@ export interface IChatPreference extends Document {
 
 const ChatPreferenceSchema = new Schema<IChatPreference>(
   {
-    business_id: { type: String, required: true, index: true },
     user_id: { type: String, required: true, index: true },
-    use_ai_reply: { type: Boolean, default: true },
+    business_id: { type: String, required: true, index: true },
+    use_ai_reply: { type: Boolean, default: true }
   },
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
 
-// Unique: 1 preference per business
-ChatPreferenceSchema.index({ business_id: 1 }, { unique: true });
+// Ensure one preference per (user + business)
+ChatPreferenceSchema.index({ user_id: 1, business_id: 1 }, { unique: true });
 
-export const ChatPreference = model<IChatPreference>("ChatPreference", ChatPreferenceSchema);
+export const ChatPreferenceModel = model<IChatPreference>(
+  "ChatPreference",
+  ChatPreferenceSchema
+);

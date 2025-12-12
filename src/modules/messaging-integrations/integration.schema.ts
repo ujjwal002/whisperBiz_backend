@@ -1,17 +1,12 @@
 import { z } from "zod";
 
-export const connectPlatformSchema = z.object({
-  body: z.object({
-    businessId: z.string().min(1),
-    platform: z.enum(["whatsapp", "telegram", "messenger"]),
-    credentials: z.record(z.string(), z.any()).optional(),
-    webhook_url: z.string().url().optional(),
-  }),
+export const connectIntegrationSchema = z.object({
+  business_id: z.string(),
+  platform: z.enum(["whatsapp", "telegram", "messenger"]),
+  credentials: z.record(z.string(), z.any()).optional()
 });
 
-export const disconnectPlatformSchema = z.object({
-  body: z.object({
-    businessId: z.string().min(1),
-    platform: z.enum(["whatsapp", "telegram", "messenger"]),
-  }),
+export const disconnectIntegrationSchema = z.object({
+  business_id: z.string(),
+  platform: z.enum(["whatsapp", "telegram", "messenger"])
 });
