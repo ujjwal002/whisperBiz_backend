@@ -10,6 +10,7 @@ import integrationRoutes from "../modules/messaging-integrations/integration.rou
 import chatMessageRoutes from "../modules/chat-messages/chatMessage.routes";
 import chatPreferenceRoutes from "../modules/chat-preferences/chatPreference.routes";
 import webhookRoutes from "../modules/webhooks/webhook.routes";
+import messengerOAuthRoutes from "../modules/messaging-integrations/messenger/messenger.oauth.routes";
 
 
 
@@ -31,5 +32,7 @@ router.use("/api/chat-preferences", chatPreferenceRoutes);
  * must call exact webhook URLs without auth middlewares.
  */
 router.use("/webhooks", webhookRoutes);
+router.use("/integrations/messenger", messengerOAuthRoutes);
+
 
 export default router;

@@ -7,25 +7,39 @@ import { MessagingIntegrationModel } from "../../../modules/messaging-integratio
 /**
  * Ensure platform synthetic user exists. Returns user document (mongoose).
  */
-export async function ensurePlatformUser(platform: string, externalId: string, displayName?: string) {
+export async function ensurePlatformUser(
+  platform: string,
+  externalId: string,
+  displayName?: string
+) {
   const syntheticEmail = `${platform}_${externalId}@platform.local`;
 
   let user = await UserModel.findOne({ email: syntheticEmail });
+
+  const safeName =
+  displayName && displayName.trim() !== ""
+    ? displayName
+    : `Messenger User ${externalId.slice(-4)}`;  // fallback
+
   if (!user) {
     user = await UserModel.create({
       email: syntheticEmail,
-      full_name: displayName ?? null,
+      full_name: safeName,
       user_type: "user",
       platform,
     });
-  } else if (displayName && (!user.full_name || user.full_name === 'New User')) {
-    // update name if missing
-    user.full_name = displayName;
-    await user.save();
+  } else {
+    // optional: update user name only if it's missing or default
+    if (!user.full_name || user.full_name.startsWith("Messenger User")) {
+      user.full_name = safeName;
+      await user.save();
+    }
   }
 
   return user;
 }
+
+
 
 /**
  * Link user to business (upsert)

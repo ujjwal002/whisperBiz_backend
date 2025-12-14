@@ -1,4 +1,5 @@
 import { MessagingIntegrationRepository } from "./integration.repository";
+import { MessagingIntegrationModel } from "./integration.model";
 
 export const MessagingIntegrationService = {
   async connectIntegration(business_id: string, platform: string, credentials: any) {
@@ -19,5 +20,15 @@ export const MessagingIntegrationService = {
 
   async getIntegration(business_id: string, platform: string) {
     return MessagingIntegrationRepository.getOne(business_id, platform);
+  },
+
+  // ⭐ NEW IMPORTANT METHOD
+  async getBusinessIdByPageId(pageId: string) {
+    const integration = await MessagingIntegrationModel.findOne({
+      platform: "messenger",
+      "credentials.pageId": pageId
+    }).lean();
+
+    return integration?.business_id || null;
   }
 };

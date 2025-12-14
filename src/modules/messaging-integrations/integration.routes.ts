@@ -4,6 +4,8 @@ import { validate } from "../../middlewares/validate.middleware";
 import { connectIntegrationSchema, disconnectIntegrationSchema } from "./integration.schema";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { fetchHistory } from "./history";
+import messengerOauthRoutes from "./messenger/messenger.oauth.routes";
+
 
 
 const router = Router();
@@ -43,6 +45,9 @@ router.post('/fetch-history', authMiddleware, async (req, res) => {
     return res.status(500).json({ error: err.message || 'unknown' });
   }
 });
+
+router.use("/messenger", messengerOauthRoutes);
+
 
 
 export default router;
