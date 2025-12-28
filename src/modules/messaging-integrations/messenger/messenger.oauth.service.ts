@@ -18,7 +18,8 @@ export const MessengerOAuthService = {
       "pages_messaging",
       "pages_read_engagement",
       "pages_manage_metadata",
-      "pages_read_user_content"
+      "pages_read_user_content",
+      "business_management"
     ].join(",");
 
     // state will be your businessId so we can map the returned code to the correct business.

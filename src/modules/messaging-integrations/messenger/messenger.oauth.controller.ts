@@ -1,13 +1,14 @@
-// modules/messaging-integrations/messenger/messenger.oauth.controller.ts
 import { Request, Response } from "express";
 import { MessengerOAuthService } from "./messenger.oauth.service";
 
 export const MessengerOAuthController = {
+  // 1️⃣ Generate OAuth URL (used by frontend)
   getOAuthUrl(req: Request, res: Response) {
     try {
-      console.log("Generating Messenger OAuth URL for businessId:", req.query.businessId);
       const businessId = String(req.query.businessId || "");
-      if (!businessId) return res.status(400).json({ error: "businessId is required" });
+      if (!businessId) {
+        return res.status(400).json({ error: "businessId is required" });
+      }
 
       const url = MessengerOAuthService.generateAuthUrl(businessId);
       return res.json({ oauthUrl: url });
@@ -17,21 +18,33 @@ export const MessengerOAuthController = {
     }
   },
 
+  // 2️⃣ Facebook OAuth callback (THIS WAS WRONG BEFORE)
   async callback(req: Request, res: Response) {
     try {
       const code = String(req.query.code || "");
-      const state = String(req.query.state || ""); // we use state=businessId
-      if (!code) return res.status(400).json({ error: "code is required" });
-      if (!state) return res.status(400).json({ error: "state (businessId) is required" });
+      const state = String(req.query.state || ""); // businessId
 
-      const result = await MessengerOAuthService.handleCallback(code, state);
+      if (!code || !state) {
+        return res.status(400).send("Missing code or state");
+      }
 
-      // By default return the saved credentials + pages list so frontend can show what was connected
-      return res.json({ success: true, saved: true, result });
+      // 🔥 OAuth + Save integration (already working)
+      await MessengerOAuthService.handleCallback(code, state);
+
+      // 🔥 REQUIRED: Redirect user back to frontend
+      const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8080";
+
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/business/dashboard?messenger=connected`
+      );
     } catch (err: any) {
       console.error("Messenger OAuth callback error:", err);
-      // Facebook often calls callback in browser — returning json is okay; you can also redirect to a success page.
-      return res.status(500).json({ error: err.message || "OAuth callback failed" });
+
+      const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8080";
+
+      return res.redirect(
+        `${FRONTEND_URL}/integrations?messenger=error`
+      );
     }
   },
 };

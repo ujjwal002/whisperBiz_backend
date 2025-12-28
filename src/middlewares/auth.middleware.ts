@@ -12,6 +12,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
     const token = auth.split(" ")[1];
     const decoded = verifyAccessToken(token) as AuthPayload;
+    console.log("authMiddleware - Decoded Token:", decoded);
 
     req.user = decoded; // <-- NOW MATCHES GLOBAL TYPE
 
