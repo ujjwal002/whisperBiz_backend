@@ -30,7 +30,7 @@ router.post(
 router.get(
   "/:businessId/members",
   authMiddleware,
-  validate(listBusinessMembersSchema),
+
   UserBusinessController.listMembers
 );
 

@@ -1,13 +1,16 @@
 import { Request, Response, NextFunction } from "express";
 import { UserService } from "./user.service";
+import { AuthUser } from "../auth/auth.model";
+
 
 export const UserController = {
-  me: async (req: Request, res: Response, next: NextFunction) => {
+  me: async (req: any, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      console.log("UserController.me - User ID:", req.user.id);
-      const userId = req.user.id;
-      const user = await UserService.getMe(userId);
+      const authUserId = req.user.id;
+
+      const user = await AuthUser.findById(authUserId).select("-password");
+      if (!user) return res.status(404).json({ error: "User not found" });
+
       res.json({ user });
     } catch (err) {
       next(err);

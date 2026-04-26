@@ -5,6 +5,5 @@ const router = Router();
 
 // Telegram rarely requires GET verification (Bot API uses setWebhook)
 // Use POST to receive updates
-router.post("/", TelegramController.receive);
-
+router.post("/:businessId", TelegramController.receive);
 export default router;

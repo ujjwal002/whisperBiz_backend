@@ -11,7 +11,7 @@ router.post("/", authMiddleware, validate(sendMessageSchema), ChatMessageControl
 router.get(
   "/:userId/:businessId",
   authMiddleware,
-  validate(getMessagesSchema),
+  // validate(getMessagesSchema),
   ChatMessageController.getConversation
 );
 

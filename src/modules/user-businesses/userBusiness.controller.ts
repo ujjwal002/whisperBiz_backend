@@ -30,6 +30,7 @@ export const UserBusinessController = {
   listMembers: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { businessId } = req.params;
+      console.log("Listing members for business:", businessId);
 
       const members = await UserBusinessService.listMembers(businessId);
       res.json({ members });

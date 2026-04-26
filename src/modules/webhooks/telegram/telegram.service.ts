@@ -1,20 +1,26 @@
 import { NormalizeMessage } from "../helpers/normalizeMessage";
 import { WebhookProcessor } from "../helpers/webhookProcessor";
+import { ChatMessageModel } from "../../chat-messages/chatMessage.model";
 
-/**
- * Telegram webhook handler
- * - businessId is expected in query param or a token mapping (implement as needed)
- */
 export const TelegramService = {
-  async handle(body: any) {
-    const normalized = NormalizeMessage.telegram(body);
+  async handle(body: any, businessId: string) {
+    // Telegram unique update id
+    const updateId = body?.update_id;
+    console.log("Received Telegram webhook:", { updateId, businessId });
 
-    // If you send Telegram webhook URL with businessId as query param, you need to parse it
-    // Example request: POST /webhooks/telegram?businessId=xxx
-    // The router/controller can pass the req.query; here we'll try to pick from raw body or fallback
-    const businessId =
-      body?.business_id ||
-      process.env.DEFAULT_BUSINESS_ID;
+    // prevent duplicate processing
+    if (updateId) {
+      const exists = await ChatMessageModel.findOne({
+        "raw.update_id": updateId,
+      });
+
+      if (exists) {
+        console.log("Duplicate Telegram webhook ignored:", updateId);
+        return;
+      }
+    }
+
+    const normalized = NormalizeMessage.telegram(body);
 
     if (!businessId) {
       console.warn("Telegram webhook: no businessId found");

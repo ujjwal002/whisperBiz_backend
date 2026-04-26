@@ -27,7 +27,7 @@ export const NormalizeMessage = {
     const m = body?.message;
     const text = m?.text ?? m?.caption ?? "";
     return {
-      externalUserId: String(m?.from?.id ?? ""),
+      externalUserId: String(m?.chat?.id ?? ""),
       message: text,
       platform: "telegram",
       raw: body,

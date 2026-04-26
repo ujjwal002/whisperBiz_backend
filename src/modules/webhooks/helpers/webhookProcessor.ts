@@ -3,7 +3,7 @@ import { SendReply } from "./sendReply";
 
 // Models (import existing modules)
 import { UserModel } from "../../users/user.model";
-import  UserBusinessModel  from "../../user-businesses/userBusiness.model";
+import UserBusinessModel from "../../user-businesses/userBusiness.model";
 import { ChatMessageModel } from "../../chat-messages/chatMessage.model";
 import { ChatPreferenceModel } from "../../chat-preferences/chatPreference.model";
 import { MessagingIntegrationModel } from "../../messaging-integrations/integration.model";
@@ -29,7 +29,7 @@ export const WebhookProcessor = {
       if (!user) {
         const created = await UserModel.create({
           email: syntheticEmail,
-          full_name: null,
+          full_name: normalized?.raw?.message?.from?.first_name || "Telegram User",
           user_type: "user",
           platform
         });
@@ -50,9 +50,12 @@ export const WebhookProcessor = {
         user_id: userId,
         business_id: businessId,
         message,
-        sender_type: "user"
+        sender_type: "user",
+        raw: normalized.raw,
+        metadata: normalized.metadata
       });
 
+      console.log("✅ Message saved:", inbound);
       // 4) Check preference for AI replies
       const pref = await ChatPreferenceModel.findOne({ user_id: userId, business_id: businessId }).lean();
       const useAI = pref?.use_ai_reply ?? true;
@@ -88,8 +91,29 @@ export const WebhookProcessor = {
   },
 
   async generateAIReply(incomingText: string, ctx: any) {
-    // TODO: Replace with real AI integration (OpenAI, local LLM, etc.)
-    // Keep this small and cheap if you want to reduce cloud cost — use a cached prompt or rules.
-    return `Auto reply: ${incomingText}`;
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful business assistant replying professionally.",
+          },
+          {
+            role: "user",
+            content: incomingText,
+          },
+        ],
+      }),
+    });
+
+    const data = await response.json();
+
+    return data?.choices?.[0]?.message?.content || "Sorry, I am unavailable is.";
   }
 };
