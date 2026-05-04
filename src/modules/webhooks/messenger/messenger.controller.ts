@@ -17,6 +17,7 @@ export const MessengerController = {
 
   receive: async (req: Request, res: Response) => {
     try {
+      console.log("Messenger webhook hit");
       await MessengerService.handle(req.body);
       return res.sendStatus(200);
     } catch (err) {

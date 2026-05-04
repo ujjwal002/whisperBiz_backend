@@ -18,6 +18,16 @@ export const MessengerPageSelectionService = {
     });
 
     const pageAccessToken = pageResp.data.access_token;
+
+    await axios.post(
+      `${GRAPH_API}/${pageId}/subscribed_apps`,
+      {},
+      {
+        params: {
+          access_token: pageAccessToken
+        }
+      }
+    );
     const pageName = pageResp.data.name;
 
     if (!pageAccessToken) {

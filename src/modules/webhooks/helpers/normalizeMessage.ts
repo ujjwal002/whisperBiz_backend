@@ -35,16 +35,25 @@ export const NormalizeMessage = {
     };
   },
 
-  messenger(body: any): NormalizedMessage {
-    // Messenger webhook: entry[].messaging[]
-    const messaging = body?.entry?.[0]?.messaging?.[0] ?? {};
-    const text = messaging?.message?.text ?? "";
-    return {
-      externalUserId: messaging?.sender?.id ?? "",
-      message: text,
-      platform: "messenger",
-      raw: messaging,
-      metadata: { pageId: body?.entry?.[0]?.id }
-    };
-  }
+  messenger(body: any): NormalizedMessage | null {
+  const messaging = body?.entry?.[0]?.messaging?.[0] ?? {};
+
+  // ignore delivery/read/postback/echo events
+  if (messaging?.delivery) return null;
+  if (messaging?.read) return null;
+  if (messaging?.postback) return null;
+  if (messaging?.message?.is_echo) return null;
+
+  const text = messaging?.message?.text ?? "";
+
+  if (!text) return null;
+
+  return {
+    externalUserId: messaging?.sender?.id ?? "",
+    message: text,
+    platform: "messenger",
+    raw: messaging,
+    metadata: { pageId: body?.entry?.[0]?.id }
+  };
+}
 };

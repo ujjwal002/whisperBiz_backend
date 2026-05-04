@@ -4,11 +4,13 @@ import { ChatMessageModel } from "./chatMessage.model";
 import { UserModel } from "../users/user.model";
 import { MessagingIntegrationModel } from "../messaging-integrations/integration.model";
 import { SendReply } from "../webhooks/helpers/sendReply";
+import { Number } from "mongoose";
 
 export const ChatMessageService = {
   async sendMessage(data: any) {
     // save in DB
     const saved = await ChatMessageRepository.create(data);
+    console.log("Saving message:", saved);
 
     // fetch user
     const user = await UserModel.findById(data.user_id);
@@ -66,7 +68,12 @@ export const ChatMessageService = {
       .sort({ createdAt: 1 })
       .lean();
 
-    return messages;
+    console.log("Fetched messages:", messages);
+
+    return messages.map((m) => ({
+      ...m,
+      createdAt: m.created_at,
+    }));
 
   },
 
@@ -127,5 +134,7 @@ export const ChatMessageService = {
     console.log("✅ Users:", users);
 
     return users;
-  }
+  },
+
+
 };

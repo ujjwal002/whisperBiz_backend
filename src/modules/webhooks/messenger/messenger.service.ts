@@ -5,6 +5,7 @@ import { MessagingIntegrationService } from "../../messaging-integrations/integr
 export const MessengerService = {
   async handle(body: any) {
     const normalized = NormalizeMessage.messenger(body);
+    if (!normalized) return;
     console.log("Messenger webhook received:", JSON.stringify(normalized).slice(0, 500));
 
     const entry = body?.entry?.[0];
